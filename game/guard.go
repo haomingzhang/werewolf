@@ -27,10 +27,7 @@ func CreateGuard(id int, c *Controller) *Guard {
 func (v *Guard) Die(isPoisoned bool) {
 	v.dead = true
 	v.isPoisoned = isPoisoned
-}
-
-func (v *Guard) SaveLife() {
-	v.dead = false
+	v.controller.GuardCount--
 }
 
 func (v *Guard) IsDead() bool {

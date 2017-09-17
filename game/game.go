@@ -29,6 +29,7 @@ var skillName = map[int]string{
 	SkillSave:       "Save",
 	SkillPoison:     "Poison",
 	SkillVerifyRole: "VerifyRole",
+	SkillProtect:    "Guard",
 	SkillFire:       "Fire",
 	SkillDontUse:    "Don't_use_skill",
 }
@@ -38,6 +39,7 @@ const (
 	TurnWizard
 	TurnProphet
 	TurnDay
+	TurnGuard
 	TurnNotStarted
 	TurnStarted
 	TurnGameOver
@@ -46,7 +48,7 @@ const (
 )
 
 const (
-	NumTurn       = 4
+	NumTurn       = 5
 	SleepInterval = 2 * time.Second
 )
 
@@ -74,7 +76,6 @@ type Controller struct {
 
 type Role interface {
 	Die(bool)
-	SaveLife()
 	GetRoleName() string
 	GetPlayerName() string
 	Register(name string) bool
@@ -323,23 +324,39 @@ func (c *Controller) beginNight(day int) {
 	killedId := <-c.waitChan[TurnWerewolf]
 	saved := false
 	c.killedTonight = killedId
+
+	// Guard
+	/*
+		if c.GuardCount>0 {
+			c.sleepAndPlayAudio(TurnGuard)
+			guardId := <-c.waitChan[TurnGuard]
+		}
+	*/
+
 	// Wizard
 	atomic.StoreInt32(c.phase, TurnWizard)
 	c.sleepAndPlayAudio(TurnWizard)
-	targetId := <-c.waitChan[TurnWizard]
-	if targetId == -1 { // save
-		saved = true
-	} else if targetId == -2 {
-		// do not use skill
-	} else { // poison
-		defer c.Roles[targetId].Die(true)
+	targetId := -2
+	if c.WizardCount > 0 {
+		targetId = <-c.waitChan[TurnWizard]
+		if targetId == -1 { // save
+			saved = true
+		} else if targetId == -2 {
+			// do not use skill
+		} else { // poison
+			defer c.Roles[targetId].Die(true)
+		}
+	} else {
+		time.Sleep(SleepInterval)
 	}
-
 	// Prophet
 	atomic.StoreInt32(c.phase, TurnProphet)
 	c.sleepAndPlayAudio(TurnProphet)
-	<-c.waitChan[TurnProphet]
-
+	if c.ProphetCount > 0 {
+		<-c.waitChan[TurnProphet]
+	} else {
+		time.Sleep(SleepInterval)
+	}
 	// end the night
 	if !saved {
 		c.Roles[killedId].Die(false)
@@ -411,7 +428,12 @@ func (c *Controller) sleepAndPlayAudio(turn int) {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-
+	case TurnGuard:
+		cmd = exec.Command("/bin/bash", "-c", "afplay ./audio/guard.mpg")
+		err = cmd.Run()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
 	}
 
 }

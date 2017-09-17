@@ -30,10 +30,7 @@ func CreateWizard(id int, c *Controller) *Wizard {
 func (v *Wizard) Die(isPoisoned bool) {
 	v.dead = true
 	v.isPoisoned = isPoisoned
-}
-
-func (v *Wizard) SaveLife() {
-	v.dead = false
+	v.controller.WizardCount--
 }
 
 func (v *Wizard) IsDead() bool {
@@ -83,7 +80,7 @@ func (v *Wizard) GetActionCode() (bool, []int) {
 	if len(ret) == 0 {
 		return false, nil
 	}
-	ret = append(ret)
+	ret = append(ret, SkillDontUse)
 	return true, ret
 }
 

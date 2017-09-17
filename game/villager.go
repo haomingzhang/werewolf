@@ -27,10 +27,7 @@ func CreateVillager(id int, c *Controller) *Villager {
 func (v *Villager) Die(isPoisoned bool) {
 	v.dead = true
 	v.isPoisoned = isPoisoned
-}
-
-func (v *Villager) SaveLife() {
-	v.dead = false
+	v.controller.VillagerCount--
 }
 
 func (v *Villager) IsDead() bool {

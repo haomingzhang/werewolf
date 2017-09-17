@@ -29,10 +29,7 @@ func CreateProphet(id int, c *Controller) *Prophet {
 func (v *Prophet) Die(isPoisoned bool) {
 	v.dead = true
 	v.isPoisoned = isPoisoned
-}
-
-func (v *Prophet) SaveLife() {
-	v.dead = false
+	v.controller.ProphetCount--
 }
 
 func (v *Prophet) IsDead() bool {

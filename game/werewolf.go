@@ -28,10 +28,7 @@ func CreateWerewolf(id int, c *Controller) *Werewolf {
 func (v *Werewolf) Die(isPoisoned bool) {
 	v.dead = true
 	v.isPoisoned = isPoisoned
-}
-
-func (v *Werewolf) SaveLife() {
-	v.dead = false
+	v.controller.WerewolfCount--
 }
 
 func (v *Werewolf) IsDead() bool {

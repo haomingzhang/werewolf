@@ -28,10 +28,7 @@ func CreateHunter(id int, c *Controller) *Hunter {
 func (v *Hunter) Die(isPoisoned bool) {
 	v.dead = true
 	v.isPoisoned = isPoisoned
-}
-
-func (v *Hunter) SaveLife() {
-	v.dead = false
+	v.controller.HunterCount--
 }
 
 func (v *Hunter) IsDead() bool {

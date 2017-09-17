@@ -27,10 +27,7 @@ func CreateMoron(id int, c *Controller) *Moron {
 func (v *Moron) Die(isPoisoned bool) {
 	v.dead = true
 	v.isPoisoned = isPoisoned
-}
-
-func (v *Moron) SaveLife() {
-	v.dead = false
+	v.controller.MoronCount--
 }
 
 func (v *Moron) IsDead() bool {
