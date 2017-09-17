@@ -9,7 +9,7 @@ import (
 )
 
 type GameServer struct {
-	controller *Controller
+	Controller *Controller
 }
 
 type ErrorResponse struct {
@@ -30,6 +30,7 @@ func (g *GameServer) Start() {
 	http.HandleFunc("/action", g.handleAction)
 	http.HandleFunc("/lastnightinfo", g.handleLastNight)
 	http.HandleFunc("/dayend", g.handleDayEnd)
+	http.HandleFunc("/home", g.handleHome)
 
 	http.ListenAndServe(":8888", nil)
 }
@@ -52,9 +53,10 @@ type ActionRequest struct {
 }
 
 type ActionResponse struct {
-	Successful  bool   `json:"successful"`
-	ActionCodes []int  `json:"actionCodes"`
-	Message     string `json:"message"`
+	Successful  bool     `json:"successful"`
+	ActionCodes []int    `json:"actionCodes"`
+	ActionName  []string `json:"actionNames"`
+	Message     string   `json:"message"`
 }
 
 type RegisterRequest struct {
@@ -92,16 +94,31 @@ func (g *GameServer) handleHealth(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Werewolf Server is healthy! Haoming is healthier!"))
 }
 
+func (g *GameServer) handleHome(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		g.writeClientError(w, http.StatusBadRequest, "Only GET is supported")
+		return
+	}
+	pageBytes, err := ioutil.ReadFile("./ui/index.html")
+	if err != nil {
+		g.writeServerError(w, err.Error())
+		return
+	}
+	w.Write(pageBytes)
+	w.Header().Set("Content-Type", "text/html")
+
+}
+
 func (g *GameServer) handleLastNight(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		g.writeClientError(w, http.StatusBadRequest, "Only GET is supported")
 		return
 	}
-	if !g.controller.isInitialized() {
+	if !g.Controller.isInitialized() {
 		g.writeClientError(w, http.StatusForbidden, "Game has not been initialized")
 		return
 	}
-	res := g.controller.GetLastNightInfo()
+	res := g.Controller.GetLastNightInfo()
 	resBytes, err := json.Marshal(res)
 	if err != nil {
 		g.writeServerError(w, err.Error())
@@ -116,7 +133,7 @@ func (g *GameServer) handleDayEnd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-	if !g.controller.isInitialized() {
+	if !g.Controller.isInitialized() {
 		g.writeClientError(w, http.StatusForbidden, "Game has not been initialized")
 		return
 	}
@@ -129,14 +146,14 @@ func (g *GameServer) handleDayEnd(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// validate request
-	valid, reason := rr.Validate(g.controller)
+	valid, reason := rr.Validate(g.Controller)
 	if !valid {
 		g.writeClientError(w, http.StatusBadRequest, reason)
 		return
 	}
 
 	//  banish player
-	res := g.controller.BanishPlayer(rr.BanishId)
+	res := g.Controller.BanishPlayer(rr.BanishId)
 	resBytes, err := json.Marshal(res)
 	if err != nil {
 		g.writeServerError(w, err.Error())
@@ -151,11 +168,11 @@ func (g *GameServer) handleStart(w http.ResponseWriter, r *http.Request) {
 		g.writeClientError(w, http.StatusBadRequest, "Only POST is supported")
 		return
 	}
-	if !g.controller.isInitialized() {
+	if !g.Controller.isInitialized() {
 		g.writeClientError(w, http.StatusForbidden, "Game has not been initialized")
 		return
 	}
-	if success, msg := g.controller.StartGame(); !success {
+	if success, msg := g.Controller.StartGame(); !success {
 		g.writeClientError(w, http.StatusForbidden, msg)
 		return
 	}
@@ -177,7 +194,7 @@ func (g *GameServer) handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-	if !g.controller.isInitialized() {
+	if !g.Controller.isInitialized() {
 		g.writeClientError(w, http.StatusForbidden, "Game has not been initialized")
 		return
 	}
@@ -190,14 +207,14 @@ func (g *GameServer) handleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// validate request
-	valid, reason := rr.Validate(g.controller.TotalCount)
+	valid, reason := rr.Validate(g.Controller.TotalCount)
 	if !valid {
 		g.writeClientError(w, http.StatusBadRequest, reason)
 		return
 	}
 
 	// send response
-	res := g.controller.Register(rr)
+	res := g.Controller.Register(rr)
 	w.WriteHeader(res.Code)
 	resBytes, err := json.Marshal(res)
 	if err != nil {
@@ -206,7 +223,7 @@ func (g *GameServer) handleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write(resBytes)
 	if res.Code == http.StatusOK {
-		log.Printf("Player %d (%s) registered!", res.Id, res.Name)
+		log.Printf("Player %d (%s) registered!", res.Id+1, res.Name)
 	}
 }
 
@@ -225,14 +242,14 @@ func (g *GameServer) handleAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// validate request
-	valid, reason := req.Validate(g.controller)
+	valid, reason := req.Validate(g.Controller)
 	if !valid {
 		g.writeClientError(w, http.StatusUnauthorized, reason)
 		return
 	}
-
+	//log.Println(string(bodyBytes))
 	// sendResponse
-	res := g.controller.HandleAction(req.Id, req.ActionCode, req.Target)
+	res := g.Controller.HandleAction(req.Id, req.ActionCode, req.Target)
 	resBytes, err := json.Marshal(res)
 	if err != nil {
 		g.writeServerError(w, err.Error())
@@ -263,8 +280,7 @@ func (g *GameServer) handleInit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// initialize context
-	g.controller = CreateController()
-	if !g.controller.Initialize(sgr) {
+	if !g.Controller.Initialize(sgr) {
 		g.writeClientError(w, http.StatusForbidden, "Game already initialized!")
 		return
 	}
@@ -349,6 +365,9 @@ func (r *ActionRequest) Validate(c *Controller) (bool, string) {
 	}
 	if c.Passwords[r.Id] != r.Password {
 		return false, "Wrong Password"
+	}
+	if r.Target < 0 || r.Target >= c.TotalCount {
+		return false, "Invalid id"
 	}
 	return true, ""
 }

@@ -14,6 +14,8 @@ type Wizard struct {
 	registered bool
 	controller *Controller
 	isPoisoned bool
+	saveUsed   bool
+	poisonUsed bool
 }
 
 func CreateWizard(id int, c *Controller) *Wizard {
@@ -71,7 +73,18 @@ func (v *Wizard) GetActionCode() (bool, []int) {
 	if atomic.LoadInt32(v.controller.phase) != TurnWizard {
 		return false, nil
 	}
-	return true, []int{SkillSave, SkillPoison}
+	ret := []int{}
+	if !v.saveUsed {
+		ret = append(ret, SkillSave)
+	}
+	if !v.poisonUsed {
+		ret = append(ret, SkillPoison)
+	}
+	if len(ret) == 0 {
+		return false, nil
+	}
+	ret = append(ret)
+	return true, ret
 }
 
 func (v *Wizard) Act(action int, targetId int) (bool, string) {
@@ -81,6 +94,10 @@ func (v *Wizard) Act(action int, targetId int) (bool, string) {
 
 	switch action {
 	case SkillSave:
+		if v.saveUsed {
+			return false, "Your potion is already Used!"
+		}
+		v.saveUsed = true
 		v.controller.waitChan[TurnWizard] <- -1
 	case SkillPoison:
 		target := v.controller.Roles[targetId]
@@ -88,6 +105,9 @@ func (v *Wizard) Act(action int, targetId int) (bool, string) {
 			return false, "Target is already dead!"
 		}
 		v.controller.waitChan[TurnWizard] <- targetId
+	case SkillDontUse:
+		v.controller.waitChan[TurnWizard] <- -2
+		return true, "Didn't use any skill!"
 	default:
 		return false, "You're not able to use this skill!"
 	}

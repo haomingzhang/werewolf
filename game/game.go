@@ -21,7 +21,17 @@ const (
 	SkillVerifyRole
 	SkillFire
 	SkillProtect
+	SkillDontUse
 )
+
+var skillName = map[int]string{
+	SkillKill:       "Kill",
+	SkillSave:       "Save",
+	SkillPoison:     "Poison",
+	SkillVerifyRole: "VerifyRole",
+	SkillFire:       "Fire",
+	SkillDontUse:    "Don't_use_skill",
+}
 
 const (
 	TurnWerewolf = iota
@@ -37,7 +47,7 @@ const (
 
 const (
 	NumTurn       = 4
-	SleepInterval = 5 * time.Second
+	SleepInterval = 2 * time.Second
 )
 
 type Controller struct {
@@ -59,6 +69,7 @@ type Controller struct {
 	phase         *int32
 	waitChan      []chan int
 	lastNight     []string
+	killedTonight int
 }
 
 type Role interface {
@@ -171,7 +182,7 @@ func (c *Controller) StartGame() (bool, string) {
 	// print message
 	log.Println("Game Started:")
 	for i, r := range c.Roles {
-		log.Printf("Player	%d	Name:	%s\n", i, r.GetPlayerName())
+		log.Printf("Player	%d	Name:	%s\n", i+1, r.GetPlayerName())
 	}
 
 	// start game
@@ -188,11 +199,28 @@ func (c *Controller) HandleAction(id int, action int, target int) *ActionRespons
 		res.Successful, res.ActionCodes = c.Roles[id].GetActionCode()
 		if !res.Successful {
 			res.Message = "You can't use skill now!"
+			return res
+		}
+		// dead info
+		if isInSlice(SkillSave, res.ActionCodes) {
+			res.Message = fmt.Sprintf("Player id=%d is killed tonight.", c.killedTonight+1)
 		}
 	default:
 		res.Successful, res.Message = c.Roles[id].Act(action, target)
 	}
+	for _, code := range res.ActionCodes {
+		res.ActionName = append(res.ActionName, skillName[code])
+	}
 	return res
+}
+
+func isInSlice(t int, s []int) bool {
+	for _, n := range s {
+		if t == n {
+			return true
+		}
+	}
+	return false
 }
 
 func (c *Controller) GameIsEnd() bool {
@@ -294,12 +322,15 @@ func (c *Controller) beginNight(day int) {
 	c.sleepAndPlayAudio(TurnWerewolf)
 	killedId := <-c.waitChan[TurnWerewolf]
 	saved := false
+	c.killedTonight = killedId
 	// Wizard
 	atomic.StoreInt32(c.phase, TurnWizard)
 	c.sleepAndPlayAudio(TurnWizard)
 	targetId := <-c.waitChan[TurnWizard]
 	if targetId == -1 { // save
 		saved = true
+	} else if targetId == -2 {
+		// do not use skill
 	} else { // poison
 		defer c.Roles[targetId].Die(true)
 	}
@@ -312,17 +343,17 @@ func (c *Controller) beginNight(day int) {
 	// end the night
 	if !saved {
 		c.Roles[killedId].Die(false)
-		c.lastNight = append(c.lastNight, strconv.Itoa(killedId))
+		c.lastNight = append(c.lastNight, strconv.Itoa(killedId+1))
 	}
 	if targetId >= 0 && targetId != killedId {
-		c.lastNight = append(c.lastNight, strconv.Itoa(targetId))
+		c.lastNight = append(c.lastNight, strconv.Itoa(targetId+1))
 	}
 	c.sleepAndPlayAudio(turnNightEnd)
 	go c.beginDay(day)
 }
 
 func (c *Controller) sleepAndPlayAudio(turn int) {
-	time.Sleep(5 * time.Second)
+	time.Sleep(SleepInterval)
 	var cmd *exec.Cmd
 	var err error
 	switch turn {

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<link rel="manifest" href="/manifest.json">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Werewolf by Haoming Zhang</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+<body>
+<h1>Werewolf by Haoming Zhang</h1>
+<div>
+<button type="button" style="height:100px;width:200px;font-size:30px"
+        onclick="showInitForm()">
+    init game</button>
+<button type="button" style="height:100px;width:200px;font-size:30px"
+        onclick="startGame()">
+    start game</button>
+<button type="button" style="height:100px;width:200px;font-size:30px"
+        onclick="showRegisterForm()">
+    register</button>
+</div>
+<div>
+<button type="button" style="height:100px;width:200px;font-size:30px"
+        onclick="showGetSkillForm()">
+    use skill</button>
+</div>
+<div>
+<button type="button" style="height:100px;width:200px;font-size:30px"
+        onclick="getLastNight()">
+    last night info</button>
+
+<button type="button" style="height:100px;width:200px;font-size:30px"
+        onclick="getLastNight()">
+    day end</button>
+</div>
+<div id="demo"></div>
+
+<form hidden action="" id="initForm" method="post" onsubmit="">
+    VillagerCount: <input type="number" name="villagerCount" value=4><br>
+    WerewolfCount: <input type="number" name="werewolfCount" value=4><br>
+    ProphetCount: <input type="number" name="prophetCount" value=1><br>
+    WizardCount: <input type="number" name="wizardCount" value=1><br>
+    HunterCount: <input type="number" name="hunterCount" value=1><br>
+    MoronCount: <input type="number" name="moronCount" value=1><br>
+    GuardCount: <input type="number" name="guardCount" value=0><br>
+    <input type="submit" value="Submit">
+</form>
+
+<form hidden action="" id="registerForm" method="post" onsubmit="">
+    Id: <input type="number" name="id" value=1><br>
+    Name: <input type="text" name="name" value='haoming'><br>
+    Password: <input type="text" name="password" value=111><br>
+    <input type="submit" value="Submit">
+</form>
+
+<form hidden action="" id="skillForm" method="post" onsubmit="">
+    Id: <input type="number" name="id" value=1><br>
+    Password: <input type="text" name="password" value=111><br>
+    ActionCode: <input type="text" name="actionCode" value=-1><br>
+    Target: <input type="text" name="target" value=-1><br>
+    <input type="submit" value="Submit">
+</form>
+
+<form hidden action="" id="getSkillForm" method="post" onsubmit="">
+    Id: <input type="number" name="id" value=1><br>
+    Password: <input type="text" name="password" value=111><br>
+    <input type="submit" value="Submit">
+</form>
+
+<form hidden action="" id="dayEndForm" method="post" onsubmit="">
+    BanishId: <input type="number" name="banishId" value=-1><br>
+    <input type="submit" value="Submit">
+</form>
+
+<script>
+    var playerId
+    var password
+    function showInitForm() {
+        hideAllForm()
+        displayInitForm()
+    }
+
+    function showRegisterForm() {
+        hideAllForm()
+        displayRegisterForm()
+    }
+
+    function showGetSkillForm() {
+        hideAllForm()
+        displayGetSkillForm()
+    }
+
+    function showSkillForm() {
+        hideAllForm()
+        displaySkillForm()
+    }
+
+    function displayGetSkillForm () {
+        document.getElementById('getSkillForm').removeAttribute('hidden');
+    }
+
+    function displayRegisterForm() {
+        document.getElementById('registerForm').removeAttribute('hidden');
+    }
+
+    function displayInitForm() {
+        document.getElementById('initForm').removeAttribute('hidden');
+    }
+
+    function displaySkillForm() {
+        document.getElementById('skillForm').removeAttribute('hidden');
+    }
+
+    function hideRegisterForm() {
+        document.getElementById('registerForm').setAttribute('hidden', 'hidden');
+    }
+
+    function hideInitForm() {
+        document.getElementById('initForm').setAttribute('hidden', 'hidden');
+    }
+
+    function hideSkillForm() {
+        document.getElementById('skillForm').setAttribute('hidden', 'hidden');
+    }
+
+    function hideGetSkillForm() {
+        document.getElementById('getSkillForm').setAttribute('hidden', 'hidden');
+    }
+
+    function hideAllForm() {
+        hideRegisterForm()
+        hideInitForm()
+        hideSkillForm()
+        hideGetSkillForm()
+        clearText()
+    }
+
+    function clearText() {
+        $("#demo").html('');
+    }
+
+    function startGame() {
+        hideAllForm()
+        $.ajax({
+            cache: false,
+            url: "/start",
+            type: "POST",
+            dataType: "json",
+            success: function (callback) {
+                //Where $(this) => context == FORM
+                console.log(callback.message);
+                $("#demo").html(callback.message);
+            },
+            error: function (xhr, textStatus, err) {
+                $("#demo").html(err+ ': ' + xhr.responseJSON.message);
+            }
+        });
+    }
+
+    function getLastNight() {
+        hideAllForm()
+        $.ajax({
+            cache: false,
+            url: "/lastnightinfo",
+            type: "GET",
+            dataType: "json",
+            success: function (callback) {
+                $("#demo").html(callback.message);
+            },
+            error: function (xhr, textStatus, err) {
+                $("#demo").html(err+ ': ' + xhr.responseJSON.message);
+            }
+        });
+    }
+
+    $("form#registerForm").submit(function(e) {
+
+        e.preventDefault();
+
+        var data = {}
+        var Form = this;
+
+        //Gathering the Data
+        //and removing undefined keys(buttons)
+        $.each(this.elements, function (i, v) {
+            var input = $(v);
+            data[input.attr("name")] = input.val();
+            delete data["undefined"];
+        });
+        data['id'] = parseInt(data['id']) - 1
+
+        $.ajax({
+            cache: false,
+            url: "/register",
+            type: "POST",
+            dataType: "json",
+            data: JSON.stringify(data),
+            context: Form,
+            success: function (callback) {
+                hideAllForm()
+                $("#demo").html('<div>id: '+(callback.id+1)+'</div>' + '<div>name: '+callback.name+'</div>' + '<div>roleName: '+callback.roleName+'</div>')
+            },
+            error: function (xhr, textStatus, err) {
+                hideAllForm()
+                $("#demo").html(err+ ': ' + xhr.responseJSON.message);
+            }
+        });
+    });
+
+    $("form#skillForm").submit(function(e) {
+
+        e.preventDefault();
+
+        var data = {}
+        var Form = this;
+
+        //Gathering the Data
+        //and removing undefined keys(buttons)
+        $.each(this.elements, function (i, v) {
+            var input = $(v);
+            data[input.attr("name")] = input.val();
+            delete data["undefined"];
+        });
+        data['id'] = parseInt(data['id']) - 1
+        data['target'] = parseInt(data['target']) - 1
+        data['actionCode'] = parseInt(data['actionCode'])
+        $.ajax({
+            cache: false,
+            url: "/action",
+            type: "POST",
+            dataType: "json",
+            data: JSON.stringify(data),
+            context: Form,
+            success: function (callback) {
+                hideAllForm()
+                $("#demo").html('<div>SuccessfulState: '+ callback.successful + '</div>' + '<div>Message is: '+callback.message+'</div>')
+            },
+            error: function (xhr, textStatus, err) {
+                hideAllForm()
+                $("#demo").html(err+ ': ' + xhr.responseJSON.message);
+            }
+        });
+    });
+
+    $("form#getSkillForm").submit(function(e) {
+
+        e.preventDefault();
+
+        var data = {}
+        var Form = this;
+
+        //Gathering the Data
+        //and removing undefined keys(buttons)
+        $.each(this.elements, function (i, v) {
+            var input = $(v);
+            data[input.attr("name")] = input.val();
+            delete data["undefined"];
+        });
+        data['id'] = parseInt(data['id']) - 1
+
+        $.ajax({
+            cache: false,
+            url: "/action",
+            type: "POST",
+            dataType: "json",
+            data: JSON.stringify(data),
+            context: Form,
+            success: function (callback) {
+                hideAllForm()
+                $("#demo").html('<div>Your ActionCodes are: '+ callback.actionCodes + '</div>' + '<div>Skill names are: '+callback.actionNames+'</div>'+ '<div>Message is: '+callback.message+'</div>' + '<div>Please fill in your ActionCode and the target your skill is aiming at!</div>')
+                if (callback.actionCodes != null) {
+                    displaySkillForm()
+                }
+            },
+            error: function (xhr, textStatus, err) {
+                hideAllForm()
+                $("#demo").html(err+ ': ' + xhr.responseJSON.message);
+            }
+        });
+    });
+
+    $("form#initForm").submit(function(e) {
+
+        e.preventDefault();
+
+        var data = {}
+        var Form = this;
+
+        //Gathering the Data
+        //and removing undefined keys(buttons)
+        $.each(this.elements, function (i, v) {
+            var input = $(v);
+            data[input.attr("name")] = parseInt(input.val());
+            delete data["undefined"];
+        });
+
+        $.ajax({
+            cache: false,
+            url: "/init",
+            type: "POST",
+            dataType: "json",
+            data: JSON.stringify(data),
+            context: Form,
+            success: function (callback) {
+                hideAllForm()
+                $("#demo").html(callback.message);
+            },
+            error: function (xhr, textStatus, err) {
+                hideAllForm()
+                $("#demo").html(err+ ': ' + xhr.responseJSON.message);
+            }
+        });
+    });
+    //var $formData = $("#initForm")
+    //var data = getFormData($formData);
+</script>
+
+
+</body>
+</html>

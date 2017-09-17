@@ -13,5 +13,6 @@ func main() {
 		log.Fatal(err.Error())
 	}
 	gs := &game.GameServer{}
+	gs.Controller = game.CreateController()
 	gs.Start()
 }
