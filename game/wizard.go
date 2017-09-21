@@ -45,10 +45,6 @@ func (v *Wizard) GetPlayerName() string {
 	return v.playerName
 }
 
-func (v *Wizard) Action() {
-	return
-}
-
 func (v *Wizard) Register(name string) bool {
 	v.mutex.Lock()
 	defer v.mutex.Unlock()

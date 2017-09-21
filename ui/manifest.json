@@ -1,9 +1,0 @@
-{
-  "name": "Demo",
-  "description": "Sample Message Communication",
-  "version": "1",
-  "permissions": [
-    "http://*localhost:8888*"
-  ],
-  "manifest_version": 2
-}

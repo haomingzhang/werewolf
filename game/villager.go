@@ -42,10 +42,6 @@ func (v *Villager) GetPlayerName() string {
 	return v.playerName
 }
 
-func (v *Villager) Action() {
-	return
-}
-
 func (v *Villager) Register(name string) bool {
 	v.mutex.Lock()
 	defer v.mutex.Unlock()

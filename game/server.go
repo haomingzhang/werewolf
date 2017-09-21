@@ -6,6 +6,15 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
+)
+
+const (
+	ClientEndpoint = "/client"
+)
+
+const (
+	serverTimeout = 60 * time.Second
 )
 
 type GameServer struct {
@@ -21,6 +30,10 @@ type InitResponse struct {
 	Message string `json:"message"`
 }
 
+type ClientResponse struct {
+	TurnCode int `json:"turnCode"`
+}
+
 func (g *GameServer) Start() {
 	// TODO: An endpoint to end the day
 	http.HandleFunc("/init", g.handleInit)
@@ -31,7 +44,7 @@ func (g *GameServer) Start() {
 	http.HandleFunc("/lastnightinfo", g.handleLastNight)
 	http.HandleFunc("/dayend", g.handleDayEnd)
 	http.HandleFunc("/home", g.handleHome)
-
+	http.HandleFunc(ClientEndpoint, g.handleClient)
 	http.ListenAndServe(":8080", nil)
 }
 
@@ -92,6 +105,26 @@ type StartGameResponse struct {
 
 func (g *GameServer) handleHealth(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Werewolf Server is healthy! Haoming is healthier!"))
+}
+
+func (g *GameServer) handleClient(w http.ResponseWriter, r *http.Request) {
+	code := -1
+	select {
+	case code = <-g.Controller.clientChan:
+
+	case <-time.After(serverTimeout):
+		w.WriteHeader(http.StatusGatewayTimeout)
+		return
+	}
+	res := ClientResponse{
+		TurnCode: code,
+	}
+	resBytes, err := json.Marshal(res)
+	if err != nil {
+		g.writeServerError(w, err.Error())
+		return
+	}
+	w.Write(resBytes)
 }
 
 func (g *GameServer) handleHome(w http.ResponseWriter, r *http.Request) {

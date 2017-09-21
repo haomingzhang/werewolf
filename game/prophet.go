@@ -44,10 +44,6 @@ func (v *Prophet) GetPlayerName() string {
 	return v.playerName
 }
 
-func (v *Prophet) Action() {
-	return
-}
-
 func (v *Prophet) Register(name string) bool {
 	v.mutex.Lock()
 	defer v.mutex.Unlock()

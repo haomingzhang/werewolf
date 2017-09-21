@@ -43,10 +43,6 @@ func (v *Werewolf) GetPlayerName() string {
 	return v.playerName
 }
 
-func (v *Werewolf) Action() {
-	return
-}
-
 func (v *Werewolf) Register(name string) bool {
 	v.mutex.Lock()
 	defer v.mutex.Unlock()

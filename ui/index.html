@@ -7,8 +7,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 </head>
 <style>
-    html *
-    {
+    html * {
         font-size: 30px !important;
         color: #000 !important;
         font-family: Arial !important;
@@ -17,29 +16,35 @@
 <body>
 <h1>Werewolf by Haoming Zhang</h1>
 <div>
-<button type="button" style="height:100px;width:200px;font-size:30px"
-        onclick="showInitForm()">
-    initialize game</button>
-<button type="button" style="height:100px;width:200px;font-size:30px"
-        onclick="startGame()">
-    start game</button>
-<button type="button" style="height:100px;width:200px;font-size:30px"
-        onclick="showRegisterForm()">
-    register player</button>
+    <button type="button" style="height:100px;width:200px;font-size:30px"
+            onclick="showInitForm()">
+        initialize game
+    </button>
+    <button type="button" style="height:100px;width:200px;font-size:30px"
+            onclick="startGame()">
+        start game
+    </button>
+    <button type="button" style="height:100px;width:200px;font-size:30px"
+            onclick="showRegisterForm()">
+        register player
+    </button>
 </div>
 <div>
-<button type="button" style="height:100px;width:200px;font-size:30px"
-        onclick="showGetSkillForm()">
-    use skill</button>
+    <button type="button" style="height:100px;width:200px;font-size:30px"
+            onclick="showGetSkillForm()">
+        use skill
+    </button>
 </div>
 <div>
-<button type="button" style="height:100px;width:200px;font-size:30px"
-        onclick="getLastNight()">
-    last night info</button>
+    <button type="button" style="height:100px;width:200px;font-size:30px"
+            onclick="getLastNight()">
+        last night info
+    </button>
 
-<button type="button" style="height:100px;width:200px;font-size:30px"
-        onclick="getLastNight()">
-    day end banish</button>
+    <button type="button" style="height:100px;width:200px;font-size:30px"
+            onclick="showDayEndForm()">
+        day end banish
+    </button>
 </div>
 <div id="demo"></div>
 
@@ -81,29 +86,30 @@
 </form>
 
 <script>
-    var playerId
-    var password
+    var playerId;
+    var password;
+
     function showInitForm() {
-        hideAllForm()
+        hideAllForm();
         displayInitForm()
     }
 
     function showRegisterForm() {
-        hideAllForm()
+        hideAllForm();
         displayRegisterForm()
     }
 
     function showGetSkillForm() {
-        hideAllForm()
+        hideAllForm();
         displayGetSkillForm()
     }
 
-    function showSkillForm() {
-        hideAllForm()
-        displaySkillForm()
+    function showDayEndForm() {
+        hideAllForm();
+        displayDayEndForm()
     }
 
-    function displayGetSkillForm () {
+    function displayGetSkillForm() {
         document.getElementById('getSkillForm').removeAttribute('hidden');
     }
 
@@ -117,6 +123,10 @@
 
     function displaySkillForm() {
         document.getElementById('skillForm').removeAttribute('hidden');
+    }
+
+    function displayDayEndForm() {
+        document.getElementById('dayEndForm').removeAttribute('hidden');
     }
 
     function hideRegisterForm() {
@@ -135,11 +145,16 @@
         document.getElementById('getSkillForm').setAttribute('hidden', 'hidden');
     }
 
+    function hideDayEndForm() {
+        document.getElementById('dayEndForm').setAttribute('hidden', 'hidden');
+    }
+
     function hideAllForm() {
-        hideRegisterForm()
-        hideInitForm()
-        hideSkillForm()
-        hideGetSkillForm()
+        hideRegisterForm();
+        hideInitForm();
+        hideSkillForm();
+        hideGetSkillForm();
+        hideDayEndForm();
         clearText()
     }
 
@@ -148,7 +163,7 @@
     }
 
     function startGame() {
-        hideAllForm()
+        hideAllForm();
         $.ajax({
             cache: false,
             url: "/start",
@@ -160,13 +175,13 @@
                 $("#demo").html(callback.message);
             },
             error: function (xhr, textStatus, err) {
-                $("#demo").html(err+ ': ' + xhr.responseJSON.message);
+                $("#demo").html(err + ': ' + xhr.responseJSON.message);
             }
         });
     }
 
     function getLastNight() {
-        hideAllForm()
+        hideAllForm();
         $.ajax({
             cache: false,
             url: "/lastnightinfo",
@@ -176,16 +191,16 @@
                 $("#demo").html(callback.message);
             },
             error: function (xhr, textStatus, err) {
-                $("#demo").html(err+ ': ' + xhr.responseJSON.message);
+                $("#demo").html(err + ': ' + xhr.responseJSON.message);
             }
         });
     }
 
-    $("form#registerForm").submit(function(e) {
+    $("form#dayEndForm").submit(function (e) {
 
         e.preventDefault();
 
-        var data = {}
+        var data = {};
         var Form = this;
 
         //Gathering the Data
@@ -195,7 +210,40 @@
             data[input.attr("name")] = input.val();
             delete data["undefined"];
         });
-        data['id'] = parseInt(data['id']) - 1
+        data['banishId'] = parseInt(data['banishId']) - 1;
+        $.ajax({
+            cache: false,
+            url: "/dayend",
+            type: "POST",
+            dataType: "json",
+            data: JSON.stringify(data),
+            context: Form,
+            success: function (callback) {
+                hideAllForm();
+                $("#demo").html('<div>SuccessfulState: ' + callback.successful + '</div>' + '<div>Message is: ' + callback.message + '</div>')
+            },
+            error: function (xhr, textStatus, err) {
+                hideAllForm();
+                $("#demo").html(err + ': ' + xhr.responseJSON.message);
+            }
+        });
+    });
+
+    $("form#registerForm").submit(function (e) {
+
+        e.preventDefault();
+
+        var data = {};
+        var Form = this;
+
+        //Gathering the Data
+        //and removing undefined keys(buttons)
+        $.each(this.elements, function (i, v) {
+            var input = $(v);
+            data[input.attr("name")] = input.val();
+            delete data["undefined"];
+        });
+        data['id'] = parseInt(data['id']) - 1;
 
         $.ajax({
             cache: false,
@@ -205,21 +253,21 @@
             data: JSON.stringify(data),
             context: Form,
             success: function (callback) {
-                hideAllForm()
-                $("#demo").html('<div>id: '+(callback.id+1)+'</div>' + '<div>name: '+callback.name+'</div>' + '<div>roleName: '+callback.roleName+'</div>')
+                hideAllForm();
+                $("#demo").html('<div>id: ' + (callback.id + 1) + '</div>' + '<div>name: ' + callback.name + '</div>' + '<div>roleName: ' + callback.roleName + '</div>')
             },
             error: function (xhr, textStatus, err) {
-                hideAllForm()
-                $("#demo").html(err+ ': ' + xhr.responseJSON.message);
+                hideAllForm();
+                $("#demo").html(err + ': ' + xhr.responseJSON.message);
             }
         });
     });
 
-    $("form#skillForm").submit(function(e) {
+    $("form#skillForm").submit(function (e) {
 
         e.preventDefault();
 
-        var data = {}
+        var data = {};
         var Form = this;
 
         //Gathering the Data
@@ -229,9 +277,9 @@
             data[input.attr("name")] = input.val();
             delete data["undefined"];
         });
-        data['id'] = parseInt(data['id']) - 1
-        data['target'] = parseInt(data['target']) - 1
-        data['actionCode'] = parseInt(data['actionCode'])
+        data['id'] = parseInt(data['id']) - 1;
+        data['target'] = parseInt(data['target']) - 1;
+        data['actionCode'] = parseInt(data['actionCode']);
         $.ajax({
             cache: false,
             url: "/action",
@@ -240,21 +288,21 @@
             data: JSON.stringify(data),
             context: Form,
             success: function (callback) {
-                hideAllForm()
-                $("#demo").html('<div>SuccessfulState: '+ callback.successful + '</div>' + '<div>Message is: '+callback.message+'</div>')
+                hideAllForm();
+                $("#demo").html('<div>SuccessfulState: ' + callback.successful + '</div>' + '<div>Message is: ' + callback.message + '</div>')
             },
             error: function (xhr, textStatus, err) {
-                hideAllForm()
-                $("#demo").html(err+ ': ' + xhr.responseJSON.message);
+                hideAllForm();
+                $("#demo").html(err + ': ' + xhr.responseJSON.message);
             }
         });
     });
 
-    $("form#getSkillForm").submit(function(e) {
+    $("form#getSkillForm").submit(function (e) {
 
         e.preventDefault();
 
-        var data = {}
+        var data = {};
         var Form = this;
 
         //Gathering the Data
@@ -264,7 +312,7 @@
             data[input.attr("name")] = input.val();
             delete data["undefined"];
         });
-        data['id'] = parseInt(data['id']) - 1
+        data['id'] = parseInt(data['id']) - 1;
 
         $.ajax({
             cache: false,
@@ -274,24 +322,24 @@
             data: JSON.stringify(data),
             context: Form,
             success: function (callback) {
-                hideAllForm()
-                $("#demo").html('<div>Your ActionCodes are: '+ callback.actionCodes + '</div>' + '<div>Skill names are: '+callback.actionNames+'</div>'+ '<div>Message is: '+callback.message+'</div>' + '<div>Please fill in your ActionCode and the target your skill is aiming at!</div>')
+                hideAllForm();
+                $("#demo").html('<div>Your ActionCodes are: ' + callback.actionCodes + '</div>' + '<div>Skill names are: ' + callback.actionNames + '</div>' + '<div>Message is: ' + callback.message + '</div>' + '<div>Please fill in your ActionCode and the target your skill is aiming at!</div>');
                 if (callback.actionCodes != null) {
                     displaySkillForm()
                 }
             },
             error: function (xhr, textStatus, err) {
-                hideAllForm()
-                $("#demo").html(err+ ': ' + xhr.responseJSON.message);
+                hideAllForm();
+                $("#demo").html(err + ': ' + xhr.responseJSON.message);
             }
         });
     });
 
-    $("form#initForm").submit(function(e) {
+    $("form#initForm").submit(function (e) {
 
         e.preventDefault();
 
-        var data = {}
+        var data = {};
         var Form = this;
 
         //Gathering the Data
@@ -310,12 +358,12 @@
             data: JSON.stringify(data),
             context: Form,
             success: function (callback) {
-                hideAllForm()
+                hideAllForm();
                 $("#demo").html(callback.message);
             },
             error: function (xhr, textStatus, err) {
-                hideAllForm()
-                $("#demo").html(err+ ': ' + xhr.responseJSON.message);
+                hideAllForm();
+                $("#demo").html(err + ': ' + xhr.responseJSON.message);
             }
         });
     });

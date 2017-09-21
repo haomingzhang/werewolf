@@ -42,10 +42,6 @@ func (v *Moron) GetPlayerName() string {
 	return v.playerName
 }
 
-func (v *Moron) Action() {
-	return
-}
-
 func (v *Moron) Register(name string) bool {
 	v.mutex.Lock()
 	defer v.mutex.Unlock()

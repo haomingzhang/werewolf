@@ -43,10 +43,6 @@ func (v *Hunter) GetPlayerName() string {
 	return v.playerName
 }
 
-func (v *Hunter) Action() {
-	return
-}
-
 func (v *Hunter) Register(name string) bool {
 	v.mutex.Lock()
 	defer v.mutex.Unlock()

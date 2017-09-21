@@ -14,6 +14,12 @@ import (
 )
 
 const (
+	ServerMode = "server"
+	ClientMode = "client"
+	LocalMode  = "local"
+)
+
+const (
 	GetAction = iota
 	SkillKill
 	SkillSave
@@ -44,7 +50,7 @@ const (
 	TurnStarted
 	TurnGameOver
 	TurnNight
-	turnNightEnd
+	TurnNightEnd
 )
 
 const (
@@ -72,6 +78,8 @@ type Controller struct {
 	waitChan      []chan int
 	lastNight     []string
 	killedTonight int
+	gameMode      string
+	clientChan    chan int
 }
 
 type Role interface {
@@ -85,11 +93,15 @@ type Role interface {
 	IsDead() bool
 }
 
-func CreateController() *Controller {
+func CreateController(mode string) *Controller {
 	c := &Controller{
 		mutex:    &sync.Mutex{},
 		phase:    new(int32),
 		waitChan: make([]chan int, NumTurn),
+		gameMode: mode,
+	}
+	if c.gameMode == ServerMode {
+		c.clientChan = make(chan int, 10)
 	}
 	*c.phase = TurnNotStarted
 	for i := range c.waitChan {
@@ -286,12 +298,12 @@ func (c *Controller) GetLastNightInfo() *LastNightResponse {
 
 func (c *Controller) beginDay(day int) {
 	//TODO: sync here instead of sleeping
-	c.sleepAndPlayAudio(TurnDay)
+	c.SleepAndPlayAudio(TurnDay)
 	// Check game over
 	if c.GameIsEnd() {
 		atomic.StoreInt32(c.phase, TurnGameOver)
 		log.Print("Game Over!")
-		c.sleepAndPlayAudio(TurnGameOver)
+		c.SleepAndPlayAudio(TurnGameOver)
 		return
 	}
 
@@ -306,12 +318,12 @@ func (c *Controller) beginDay(day int) {
 
 func (c *Controller) beginNight(day int) {
 	//TODO: sync here instead of sleeping
-	c.sleepAndPlayAudio(TurnNight)
+	c.SleepAndPlayAudio(TurnNight)
 	// Check game over
 	if c.GameIsEnd() {
 		atomic.StoreInt32(c.phase, TurnGameOver)
 		log.Print("Game Over!")
-		c.sleepAndPlayAudio(TurnGameOver)
+		c.SleepAndPlayAudio(TurnGameOver)
 		return
 	}
 
@@ -320,7 +332,7 @@ func (c *Controller) beginNight(day int) {
 
 	// Werewolf
 	atomic.StoreInt32(c.phase, TurnWerewolf)
-	c.sleepAndPlayAudio(TurnWerewolf)
+	c.SleepAndPlayAudio(TurnWerewolf)
 	killedId := <-c.waitChan[TurnWerewolf]
 	saved := false
 	c.killedTonight = killedId
@@ -328,14 +340,14 @@ func (c *Controller) beginNight(day int) {
 	// Guard
 	/*
 		if c.GuardCount>0 {
-			c.sleepAndPlayAudio(TurnGuard)
+			c.SleepAndPlayAudio(TurnGuard)
 			guardId := <-c.waitChan[TurnGuard]
 		}
 	*/
 
 	// Wizard
 	atomic.StoreInt32(c.phase, TurnWizard)
-	c.sleepAndPlayAudio(TurnWizard)
+	c.SleepAndPlayAudio(TurnWizard)
 	targetId := -2
 	if c.WizardCount > 0 {
 		targetId = <-c.waitChan[TurnWizard]
@@ -351,7 +363,7 @@ func (c *Controller) beginNight(day int) {
 	}
 	// Prophet
 	atomic.StoreInt32(c.phase, TurnProphet)
-	c.sleepAndPlayAudio(TurnProphet)
+	c.SleepAndPlayAudio(TurnProphet)
 	if c.ProphetCount > 0 {
 		<-c.waitChan[TurnProphet]
 	} else {
@@ -365,75 +377,50 @@ func (c *Controller) beginNight(day int) {
 	if targetId >= 0 && targetId != killedId {
 		c.lastNight = append(c.lastNight, strconv.Itoa(targetId+1))
 	}
-	c.sleepAndPlayAudio(turnNightEnd)
+	c.SleepAndPlayAudio(TurnNightEnd)
 	go c.beginDay(day)
 }
 
-func (c *Controller) sleepAndPlayAudio(turn int) {
+func (c *Controller) SleepAndPlayAudio(turn int) {
+	switch c.gameMode {
+	case ServerMode:
+		log.Println("sening to client channel")
+		c.clientChan <- turn
+		log.Println("sent to client channel")
+	case LocalMode:
+		SleepAndPlayAudio(turn)
+	}
+}
+
+func SleepAndPlayAudio(turn int) {
 	time.Sleep(SleepInterval)
-	var cmd *exec.Cmd
-	var err error
 	switch turn {
 	case TurnNight:
-		cmd = exec.Command("/bin/bash", "-c", "afplay ./audio/closeEyes.mpg")
-		err = cmd.Run()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
+		PlayAudio("closeEyes.mpg")
 	case TurnWerewolf:
-		cmd = exec.Command("/bin/bash", "-c", "afplay ./audio/werewolf.mpg")
-		err = cmd.Run()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
+		PlayAudio("werewolf.mpg")
 	case TurnWizard:
-		cmd = exec.Command("/bin/bash", "-c", "afplay ./audio/werewolfEnd.mpg")
-		err = cmd.Run()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		time.Sleep(SleepInterval)
-		cmd = exec.Command("/bin/bash", "-c", "afplay ./audio/wizard.mpg")
-		err = cmd.Run()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
+		PlayAudio("werewolfEnd.mpg")
+		PlayAudio("wizard.mpg")
 	case TurnProphet:
-		cmd = exec.Command("/bin/bash", "-c", "afplay ./audio/wizardEnd.mpg")
-		err = cmd.Run()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		time.Sleep(SleepInterval)
-		cmd = exec.Command("/bin/bash", "-c", "afplay ./audio/prophet.mpg")
-		err = cmd.Run()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-	case turnNightEnd:
-		cmd = exec.Command("/bin/bash", "-c", "afplay ./audio/prophetEnd.mpg")
-		err = cmd.Run()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
+		PlayAudio("wizardEnd.mpg")
+		PlayAudio("prophet.mpg")
+	case TurnNightEnd:
+		PlayAudio("prophetEnd.mpg")
 	case TurnDay:
-		cmd = exec.Command("/bin/bash", "-c", "afplay ./audio/day.mpg")
-		err = cmd.Run()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
+		PlayAudio("day.mpg")
 	case TurnGameOver:
-		cmd = exec.Command("/bin/bash", "-c", "afplay ./audio/gameOver.mpg")
-		err = cmd.Run()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
+		PlayAudio("gameOver.mpg")
 	case TurnGuard:
-		cmd = exec.Command("/bin/bash", "-c", "afplay ./audio/guard.mpg")
-		err = cmd.Run()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
+		PlayAudio("guard.mpg")
 	}
 
+}
+
+func PlayAudio(fileName string) {
+	cmd := exec.Command("/bin/bash", "-c", "afplay ./audio/"+fileName)
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 }
