@@ -272,7 +272,7 @@ func (c *Controller) BanishPlayer(id int) *DayEndResponse {
 	if c.Roles[id].IsDead() {
 		return &DayEndResponse{
 			Successful: false,
-			Message:    fmt.Sprintf("Error: Player %d is already dead!", id),
+			Message:    fmt.Sprintf("Error: Player %d is already dead!", id+1),
 		}
 	}
 
