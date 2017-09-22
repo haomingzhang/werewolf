@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	ClientEndpoint = "/client"
+	ClientEndpoint   = "/client"
+	stopGameEndpoint = "/stop"
 )
 
 const (
@@ -44,11 +45,12 @@ func (g *GameServer) Start() {
 	http.HandleFunc("/lastnightinfo", g.handleLastNight)
 	http.HandleFunc("/dayend", g.handleDayEnd)
 	http.HandleFunc("/home", g.handleHome)
-	if g.Controller.gameMode == ServerMode{
+	if g.Controller.gameMode == ServerMode {
 		http.HandleFunc(ClientEndpoint, g.handleClient)
 	}
+	http.HandleFunc(stopGameEndpoint, g.handleStop)
 	err := http.ListenAndServe(":80", nil)
-	if err!=nil {
+	if err != nil {
 		log.Fatal(err)
 	}
 }
@@ -108,8 +110,29 @@ type StartGameResponse struct {
 	Message string `json:"message"`
 }
 
+type StopGameResponse struct {
+	Message string `json:"message"`
+}
+
 func (g *GameServer) handleHealth(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Werewolf Server is healthy! Haoming is healthier!"))
+}
+
+func (g *GameServer) handleStop(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		g.writeClientError(w, http.StatusBadRequest, "Only POST is supported")
+		return
+	}
+	g.Controller = CreateController(g.Controller.gameMode)
+	res := StopGameResponse{
+		Message: "Game successfully stopped!",
+	}
+	// response
+	resBytes, err := json.Marshal(res)
+	if err != nil {
+		g.writeServerError(w, err.Error())
+	}
+	w.Write(resBytes)
 }
 
 func (g *GameServer) handleClient(w http.ResponseWriter, r *http.Request) {

@@ -87,6 +87,7 @@
                         <a class="dropdown-item" href="#" name="init">Init Game</a>
                         <a class="dropdown-item" href="#" name="register">Register Player</a>
                         <a class="dropdown-item" href="#" name="start">Start Game</a>
+                        <a class="dropdown-item" href="#" name="stop">Stop Game</a>
                     </div>
                 </li>
                 <li class="nav-item dropdown">
@@ -114,6 +115,10 @@
     <p id="startButton" class="central-button">
     <button type="button" class="btn btn-lg btn-info"
             onclick="startGame()">start game</button>
+    </p>
+    <p id="stopButton" class="central-button">
+        <button type="button" class="btn btn-lg btn-danger"
+                onclick="stopGame()">stop game</button>
     </p>
     <p id="lastNightButton" class="central-button">
         <button type="button" class="btn btn-lg btn-info"
@@ -228,6 +233,9 @@
                 case "start":
                     $("#startButton").show();
                     break;
+                case "stop":
+                    $("#stopButton").show();
+                    break;
                 case "skill":
                     $("#getSkillForm").show();
                     break;
@@ -253,6 +261,26 @@
         $.ajax({
             cache: false,
             url: "/start",
+            type: "POST",
+            dataType: "json",
+            success: function (callback) {
+                hideAll();
+                $("#demo").show();
+                $("#demo").html(callback.message);
+            },
+            error: function (xhr, textStatus, err) {
+                hideAll();
+                $("#demo").show();
+                $("#demo").html(err + ': ' + xhr.responseJSON.message);
+            }
+        });
+    }
+
+    function stopGame() {
+        hideAll();
+        $.ajax({
+            cache: false,
+            url: "/stop",
             type: "POST",
             dataType: "json",
             success: function (callback) {
