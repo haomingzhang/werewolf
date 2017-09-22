@@ -47,7 +47,10 @@ func (g *GameServer) Start() {
 	if g.Controller.gameMode == ServerMode{
 		http.HandleFunc(ClientEndpoint, g.handleClient)
 	}
-	http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":80", nil)
+	if err!=nil {
+		log.Fatal(err)
+	}
 }
 
 type InitGameRequest struct {
