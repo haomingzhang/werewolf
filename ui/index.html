@@ -1,216 +1,324 @@
 <!DOCTYPE html>
-<link rel="manifest" href="/manifest.json">
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Werewolf by Haoming Zhang</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <title>Werewolf by Haoming Zhang</title>
+    <style>
+        body {
+            padding-top: 5rem;
+        }
+        .central-block {
+            text-align: center;
+        }
+        .central-button {
+            text-align: center;
+        }
+
+        .form-signin {
+            text-align: center;
+            max-width: 330px;
+            padding: 15px;
+            margin: 0 auto;
+        }
+        .form-signin .form-signin-heading,
+        .form-signin .checkbox {
+            margin-bottom: 10px;
+        }
+        .form-signin .checkbox {
+            font-weight: normal;
+        }
+        .form-signin .form-control {
+            position: relative;
+            height: auto;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            padding: 10px;
+            font-size: 16px;
+        }
+        .form-signin .form-control:focus {
+            z-index: 2;
+        }
+        .form-signin input[type="email"] {
+            margin-bottom: -1px;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+        .form-signin input[type="password"] {
+            margin-right: 10px;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+        #parent_div_1, #parent_div_2, #parent_div_3{
+            margin-left:30px;
+            vertical-align: middle;
+            display: inline-block;
+        }
+        .form-check-1{
+            float:left;
+            margin-right:5px;
+        }
+        .form-check-2{
+            float:left;
+            margin-right:5px;
+        }
+
+    </style>
 </head>
-<style>
-    html * {
-        font-size: 30px !important;
-        color: #000 !important;
-        font-family: Arial !important;
-    }
-</style>
 <body>
-<h1>Werewolf by Haoming Zhang</h1>
-<div>
-    <button type="button" style="height:100px;width:200px;font-size:30px"
-            onclick="showInitForm()">
-        initialize game
-    </button>
-    <button type="button" style="height:100px;width:200px;font-size:30px"
-            onclick="startGame()">
-        start game
-    </button>
-    <button type="button" style="height:100px;width:200px;font-size:30px"
-            onclick="showRegisterForm()">
-        register player
-    </button>
+
+<div class="container">
+    <div class="header clearfix">
+        <nav>
+            <ul class="nav nav-pills float-right">
+                <li class="nav-item">
+                    <a class="nav-link active" href="home">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="newgame" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">New Game</a>
+                    <div class="dropdown-menu" aria-labelledby="dropdown01">
+                        <a class="dropdown-item" href="#" name="init">Init Game</a>
+                        <a class="dropdown-item" href="#" name="register">Register Player</a>
+                        <a class="dropdown-item" href="#" name="start">Start Game</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="playgame" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Play Game</a>
+                    <div class="dropdown-menu" aria-labelledby="dropdown01">
+                        <a class="dropdown-item" href="#" name="skill">Use Skill</a>
+                        <a class="dropdown-item" href="#" name="lastNight">Last Night Into</a>
+                        <a class="dropdown-item" href="#" name="dayEnd">Day End Banish</a>
+                    </div>
+                </li>
+
+
+            </ul>
+        </nav>
+        <h3 class="text-muted">Werewolf by Haoming Zhang</h3>
+    </div>
 </div>
-<div>
-    <button type="button" style="height:100px;width:200px;font-size:30px"
-            onclick="showGetSkillForm()">
-        use skill
-    </button>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<div class="container">
+    <p id="startButton" class="central-button">
+    <button type="button" class="btn btn-lg btn-info"
+            onclick="startGame()">start game</button>
+    </p>
+    <p id="lastNightButton" class="central-button">
+        <button type="button" class="btn btn-lg btn-info"
+                onclick="getLastNight()">last night info</button>
+    </p>
+    <p id="killButton" class="central-button">
+        <button type="button" class="btn btn-lg btn-info"
+                onclick="useSkill(SkillKill)">kill somebody</button>
+    </p>
+    <p id="saveButton" class="central-button">
+        <button type="button" class="btn btn-lg btn-info"
+                onclick="useSkill(SkillSave)">Save the killed</button>
+    </p>
+    <p id="poisonButton" class="central-button">
+        <button type="button" class="btn btn-lg btn-info"
+                onclick="useSkill(SkillPoison)">Poison somebody</button>
+    </p>
+    <p id="verifyButton" class="central-button">
+        <button type="button" class="btn btn-lg btn-info"
+                onclick="useSkill(SkillVerifyRole)">Verify the role</button>
+    </p>
+    <p id="fireButton" class="central-button">
+        <button type="button" class="btn btn-lg btn-info"
+                onclick="useSkill(SkillFire)">Fire somebody</button>
+    </p>
+    <p id="protectButton" class="central-button">
+        <button type="button" class="btn btn-lg btn-info"
+                onclick="useSkill(SkillProtect)">Guard somebody</button>
+    </p>
+    <p id="dontUseButton" class="central-button">
+        <button type="button" class="btn btn-lg btn-info"
+                onclick="useSkill(SkillDontUse)">Don't use skill</button>
+    </p>
+</div><!-- /.container -->
+<div class="container">
+    <div class="central-block">
+        <p class="lead" id="demo">Werewolf Game</p>
+    </div>
+
 </div>
-<div>
-    <button type="button" style="height:100px;width:200px;font-size:30px"
-            onclick="getLastNight()">
-        last night info
-    </button>
 
-    <button type="button" style="height:100px;width:200px;font-size:30px"
-            onclick="showDayEndForm()">
-        day end banish
-    </button>
-</div>
-<div id="demo"></div>
+<form action="" id="initForm" class="form-signin" method="post" onmitmit="">
 
-<form hidden action="" id="initForm" method="post" onsubmit="">
-    VillagerCount: <input type="number" name="villagerCount" value=4><br>
-    WerewolfCount: <input type="number" name="werewolfCount" value=4><br>
-    ProphetCount: <input type="number" name="prophetCount" value=1><br>
-    WizardCount: <input type="number" name="wizardCount" value=1><br>
-    HunterCount: <input type="number" name="hunterCount" value=1><br>
-    MoronCount: <input type="number" name="moronCount" value=1><br>
-    GuardCount: <input type="number" name="guardCount" value=0><br>
-    <input type="submit" value="Submit">
+    <input class="form-control" placeholder="Villager Count" type="number" name="villagerCount">
+    <input class="form-control" placeholder="Werewolf Count" type="number" name="werewolfCount">
+    <div id="parent_div_1">
+    <div class="form-check"><label class="form-check-1"><input type="checkbox" class="form-check-input" name="prophetCount" checked="true">Prophet</label></div>
+    <div class="form-check"><label class="form-check-2"><input type="checkbox" class="form-check-input" name="wizardCount" checked="true">Wizard</label></div>
+    </div>
+    <div id="parent_div_2">
+    <div class="form-check"><label class="form-check-1"><input type="checkbox" class="form-check-input" name="hunterCount" checked="true">Hunter</label></div>
+    <div class="form-check"><label class="form-check-2"><input type="checkbox" class="form-check-input" name="moronCount" checked="true">Moron</label></div>
+    </div>
+    <div id="parent_div_3">
+    <div class="form-check"><label class="form-check-1"><input type="checkbox" class="form-check-input" name="guardCount">Guard</label></div>
+    <div class="form-check"><label class="form-check-2"><input type="checkbox" class="form-check-input" name="whiteWolfCountCount">White Wolf</label></div>
+    </div>
+    <br>
+    <input type="submit" class="btn btn-lg btn-info" value="Submit">
 </form>
 
-<form hidden action="" id="registerForm" method="post" onsubmit="">
-    Id: <input type="number" name="id" value=1><br>
-    Name: <input type="text" name="name" value='haoming'><br>
-    Password: <input type="text" name="password" value=111><br>
-    <input type="submit" value="Submit">
+<form action="" id="registerForm" class="form-signin" method="post" onsubmit="">
+    <input class="form-control" placeholder="Id" type="number" name="id">
+    <input class="form-control" placeholder="Name" type="text" name="name">
+    <input class="form-control" placeholder="Password" type="password" name="password">
+    <br>
+    <input type="submit" class="btn btn-lg btn-info" value="Submit">
 </form>
 
-<form hidden action="" id="skillForm" method="post" onsubmit="">
-    Id: <input type="number" name="id" value=1><br>
-    Password: <input type="text" name="password" value=111><br>
-    ActionCode: <input type="text" name="actionCode" value=-1><br>
-    Target: <input type="text" name="target" value=-1><br>
-    <input type="submit" value="Submit">
+<form action="" id="skillForm" class="form-signin" method="post" onsubmit="">
+    <input class="form-control" placeholder="Id" type="number" name="id">
+    <input class="form-control" placeholder="Password" type="password" name="password">
+    <input id="actionCode" class="form-control" placeholder="ActionCode" type="number" name="actionCode">
+    <input id="target" class="form-control" placeholder="Target" type="number" name="target">
+    <br>
+    <input type="submit" class="btn btn-lg btn-info" value="Submit">
 </form>
 
-<form hidden action="" id="getSkillForm" method="post" onsubmit="">
-    Id: <input type="number" name="id" value=1><br>
-    Password: <input type="text" name="password" value=111><br>
-    <input type="submit" value="Submit">
+<form action="" id="getSkillForm" class="form-signin" method="post" onsubmit="">
+    <input class="form-control" placeholder="Id" type="number" name="id">
+    <input class="form-control" placeholder="Password" type="password" name="password">
+    <br>
+    <input type="submit" class="btn btn-lg btn-info" value="Submit">
 </form>
 
-<form hidden action="" id="dayEndForm" method="post" onsubmit="">
-    BanishId: <input type="number" name="banishId" value=-1><br>
-    <input type="submit" value="Submit">
+<form action="" id="dayEndForm" class="form-signin" method="post" onsubmit="">
+    <input class="form-control" placeholder="BanishId" type="number" name="id">
+    <br>
+    <input type="submit" class="btn btn-lg btn-info" value="Submit">
 </form>
 
 <script>
-    var playerId;
-    var password;
 
-    function showInitForm() {
-        hideAllForm();
-        displayInitForm()
-    }
+    const SkillKill = 1;
+    const SkillSave = 2;
+    const SkillPoison = 3;
+    const SkillVerifyRole = 4;
+    const SkillFire = 5;
+    const SkillProtect = 6;
+    const SkillDontUse = 7;
 
-    function showRegisterForm() {
-        hideAllForm();
-        displayRegisterForm()
-    }
+    $(function () {
+        $(".dropdown-item").click(function () {
+            hideAll();
+            switch (this.name) {
+                case "init":
+                    $("#initForm").show();
+                    break;
+                case "register":
+                    $("#registerForm").show();
+                    break;
+                case "start":
+                    $("#startButton").show();
+                    break;
+                case "skill":
+                    $("#getSkillForm").show();
+                    break;
+                case "lastNight":
+                    $("#lastNightButton").show();
+                    break;
+                case "dayEnd":
+                    $("#dayEndForm").show();
+                    break;
+            }
+        });
+    });
+    
 
-    function showGetSkillForm() {
-        hideAllForm();
-        displayGetSkillForm()
-    }
-
-    function showDayEndForm() {
-        hideAllForm();
-        displayDayEndForm()
-    }
-
-    function displayGetSkillForm() {
-        document.getElementById('getSkillForm').removeAttribute('hidden');
-    }
-
-    function displayRegisterForm() {
-        document.getElementById('registerForm').removeAttribute('hidden');
-    }
-
-    function displayInitForm() {
-        document.getElementById('initForm').removeAttribute('hidden');
-    }
-
-    function displaySkillForm() {
-        document.getElementById('skillForm').removeAttribute('hidden');
-    }
-
-    function displayDayEndForm() {
-        document.getElementById('dayEndForm').removeAttribute('hidden');
-    }
-
-    function hideRegisterForm() {
-        document.getElementById('registerForm').setAttribute('hidden', 'hidden');
-    }
-
-    function hideInitForm() {
-        document.getElementById('initForm').setAttribute('hidden', 'hidden');
-    }
-
-    function hideSkillForm() {
-        document.getElementById('skillForm').setAttribute('hidden', 'hidden');
-    }
-
-    function hideGetSkillForm() {
-        document.getElementById('getSkillForm').setAttribute('hidden', 'hidden');
-    }
-
-    function hideDayEndForm() {
-        document.getElementById('dayEndForm').setAttribute('hidden', 'hidden');
-    }
-
-    function hideAllForm() {
-        hideRegisterForm();
-        hideInitForm();
-        hideSkillForm();
-        hideGetSkillForm();
-        hideDayEndForm();
-        clearText()
-    }
-
-    function clearText() {
-        $("#demo").html('');
+    function hideAll() {
+        $(".central-button").hide();
+        $(".form-signin").hide();
+        $("#demo").hide();
     }
 
     function startGame() {
-        hideAllForm();
+        hideAll();
         $.ajax({
             cache: false,
             url: "/start",
             type: "POST",
             dataType: "json",
             success: function (callback) {
-                //Where $(this) => context == FORM
-                console.log(callback.message);
+                hideAll();
+                $("#demo").show();
                 $("#demo").html(callback.message);
             },
             error: function (xhr, textStatus, err) {
+                hideAll();
+                $("#demo").show();
                 $("#demo").html(err + ': ' + xhr.responseJSON.message);
             }
         });
     }
 
     function getLastNight() {
-        hideAllForm();
+        hideAll();
         $.ajax({
             cache: false,
             url: "/lastnightinfo",
             type: "GET",
             dataType: "json",
             success: function (callback) {
+                hideAll();
+                $("#demo").show();
                 $("#demo").html(callback.message);
             },
             error: function (xhr, textStatus, err) {
+                hideAll();
+                $("#demo").show();
                 $("#demo").html(err + ': ' + xhr.responseJSON.message);
             }
         });
     }
 
+    function parseForm (form) {
+        var data = {};
+        $.each(form.elements, function (i, v) {
+            var input = $(v);
+            if (v.type=="checkbox") {
+                if (v.checked) {
+                    data[input.attr("name")] = 1
+                } else {
+                    data[input.attr("name")] = 0
+                }
+            } else if (v.type=="number"){
+                data[input.attr("name")] = parseInt(input.val());
+                if (input.attr("name")=="id" || input.attr("name")=="target" || input.attr("name")=="banishId") {
+                    data[input.attr("name")] = data[input.attr("name")] - 1
+                }
+            } else {
+                data[input.attr("name")] = input.val();
+            }
+            delete data["undefined"];
+        });
+        return data
+    }
+
+
     $("form#dayEndForm").submit(function (e) {
 
         e.preventDefault();
 
-        var data = {};
         var Form = this;
-
-        //Gathering the Data
-        //and removing undefined keys(buttons)
-        $.each(this.elements, function (i, v) {
-            var input = $(v);
-            data[input.attr("name")] = input.val();
-            delete data["undefined"];
-        });
-        data['banishId'] = parseInt(data['banishId']) - 1;
+        var data = parseForm(this);
         $.ajax({
             cache: false,
             url: "/dayend",
@@ -219,11 +327,13 @@
             data: JSON.stringify(data),
             context: Form,
             success: function (callback) {
-                hideAllForm();
+                hideAll();
+                $("#demo").show();
                 $("#demo").html('<div>SuccessfulState: ' + callback.successful + '</div>' + '<div>Message is: ' + callback.message + '</div>')
             },
             error: function (xhr, textStatus, err) {
-                hideAllForm();
+                hideAll();
+                $("#demo").show();
                 $("#demo").html(err + ': ' + xhr.responseJSON.message);
             }
         });
@@ -233,17 +343,8 @@
 
         e.preventDefault();
 
-        var data = {};
         var Form = this;
-
-        //Gathering the Data
-        //and removing undefined keys(buttons)
-        $.each(this.elements, function (i, v) {
-            var input = $(v);
-            data[input.attr("name")] = input.val();
-            delete data["undefined"];
-        });
-        data['id'] = parseInt(data['id']) - 1;
+        var data = parseForm(this);
 
         $.ajax({
             cache: false,
@@ -253,11 +354,13 @@
             data: JSON.stringify(data),
             context: Form,
             success: function (callback) {
-                hideAllForm();
+                hideAll();
+                $("#demo").show();
                 $("#demo").html('<div>id: ' + (callback.id + 1) + '</div>' + '<div>name: ' + callback.name + '</div>' + '<div>roleName: ' + callback.roleName + '</div>')
             },
             error: function (xhr, textStatus, err) {
-                hideAllForm();
+                hideAll();
+                $("#demo").show();
                 $("#demo").html(err + ': ' + xhr.responseJSON.message);
             }
         });
@@ -267,19 +370,8 @@
 
         e.preventDefault();
 
-        var data = {};
         var Form = this;
-
-        //Gathering the Data
-        //and removing undefined keys(buttons)
-        $.each(this.elements, function (i, v) {
-            var input = $(v);
-            data[input.attr("name")] = input.val();
-            delete data["undefined"];
-        });
-        data['id'] = parseInt(data['id']) - 1;
-        data['target'] = parseInt(data['target']) - 1;
-        data['actionCode'] = parseInt(data['actionCode']);
+        var data = parseForm(this);
         $.ajax({
             cache: false,
             url: "/action",
@@ -288,31 +380,42 @@
             data: JSON.stringify(data),
             context: Form,
             success: function (callback) {
-                hideAllForm();
+                hideAll();
+                $("#demo").show()
                 $("#demo").html('<div>SuccessfulState: ' + callback.successful + '</div>' + '<div>Message is: ' + callback.message + '</div>')
             },
             error: function (xhr, textStatus, err) {
-                hideAllForm();
+                hideAll();
+                $("#demo").show();
                 $("#demo").html(err + ': ' + xhr.responseJSON.message);
             }
         });
     });
+
+    function useSkill(skillCode) {
+        hideAll()
+        $("#actionCode").hide()
+        $("#actionCode").val(skillCode);
+        switch (skillCode) {
+            case SkillSave:
+                $(".form-signin").hide();
+                $("#skillForm").show();
+                $("#target").hide();
+                break;
+            default:
+                $(".form-signin").hide();
+                $("#skillForm").show();
+                $("#target").show();
+        }
+    }
+
 
     $("form#getSkillForm").submit(function (e) {
 
         e.preventDefault();
 
-        var data = {};
         var Form = this;
-
-        //Gathering the Data
-        //and removing undefined keys(buttons)
-        $.each(this.elements, function (i, v) {
-            var input = $(v);
-            data[input.attr("name")] = input.val();
-            delete data["undefined"];
-        });
-        data['id'] = parseInt(data['id']) - 1;
+        var data = parseForm(this);
 
         $.ajax({
             cache: false,
@@ -322,33 +425,50 @@
             data: JSON.stringify(data),
             context: Form,
             success: function (callback) {
-                hideAllForm();
-                $("#demo").html('<div>Your ActionCodes are: ' + callback.actionCodes + '</div>' + '<div>Skill names are: ' + callback.actionNames + '</div>' + '<div>Message is: ' + callback.message + '</div>' + '<div>Please fill in your ActionCode and the target your skill is aiming at!</div>');
+                hideAll();
+                $("#demo").show();
+                $("#demo").html(callback.message)
                 if (callback.actionCodes != null) {
-                    displaySkillForm()
+                    $.each(callback.actionCodes, function (i, v) {
+                        if (v==SkillKill) {
+                            $("#killButton").show()
+                        }
+                        if (v==SkillSave) {
+                            $("#saveButton").show()
+                        }
+                        if (v==SkillPoison) {
+                            $("#poisonButton").show()
+                        }
+                        if (v==SkillVerifyRole) {
+                            $("#verifyButton").show()
+                        }
+                        if (v==SkillFire) {
+                            $("#fireButton").show()
+                        }
+                        if (v==SkillProtect) {
+                            $("#protectButton").show()
+                        }
+                        if (v==SkillDontUse) {
+                            $("#dontUseButton").show()
+                        }
+                    });
                 }
             },
             error: function (xhr, textStatus, err) {
-                hideAllForm();
+                hideAll();
+                $("#demo").show();
                 $("#demo").html(err + ': ' + xhr.responseJSON.message);
             }
         });
     });
 
+
     $("form#initForm").submit(function (e) {
 
         e.preventDefault();
 
-        var data = {};
         var Form = this;
-
-        //Gathering the Data
-        //and removing undefined keys(buttons)
-        $.each(this.elements, function (i, v) {
-            var input = $(v);
-            data[input.attr("name")] = parseInt(input.val());
-            delete data["undefined"];
-        });
+        var data = parseForm(this);
 
         $.ajax({
             cache: false,
@@ -358,17 +478,32 @@
             data: JSON.stringify(data),
             context: Form,
             success: function (callback) {
-                hideAllForm();
-                $("#demo").html(callback.message);
+                hideAll();
+                $("#demo").show();
+                $("#demo").html(callback.message)
             },
             error: function (xhr, textStatus, err) {
-                hideAllForm();
+                hideAll();
+                $("#demo").show();
                 $("#demo").html(err + ': ' + xhr.responseJSON.message);
             }
         });
     });
-    //var $formData = $("#initForm")
-    //var data = getFormData($formData);
+
+
+    $(function() {
+        $(".nav li a").on("click", function () {
+            $(".nav li a").removeClass("active");
+            $(this).addClass("active");
+        });
+    });
+
+
+    $().ready(function() {
+        $(".form-signin").hide();
+        $(".central-button").hide();
+    });
+
 </script>
 
 
