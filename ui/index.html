@@ -189,8 +189,8 @@
 </form>
 
 <form action="" id="skillForm" class="form-signin" method="post" onsubmit="">
-    <input class="form-control" placeholder="Id" type="number" name="id">
-    <input class="form-control" placeholder="Password" type="password" name="password">
+    <input id="skillFormId" class="form-control" placeholder="Id" type="number" name="id">
+    <input id="skillFormPass" class="form-control" placeholder="Password" type="password" name="password">
     <input id="actionCode" class="form-control" placeholder="ActionCode" type="number" name="actionCode">
     <input id="target" class="form-control" placeholder="Target" type="number" name="target">
     <br>
@@ -219,6 +219,9 @@
     const SkillFire = 5;
     const SkillProtect = 6;
     const SkillDontUse = 7;
+
+    var storeId;
+    var storePassword;
 
     $(function () {
         $(".dropdown-item").click(function () {
@@ -420,17 +423,21 @@
     });
 
     function useSkill(skillCode) {
-        hideAll()
-        $("#actionCode").hide()
+        hideAll();
+        $("#actionCode").hide();
         $("#actionCode").val(skillCode);
+        $("#skillFormId").hide();
+        $("#skillFormId").val(storeId);
+        $("#skillFormPass").hide();
+        $("#skillFormPass").val(storePassword);
         switch (skillCode) {
             case SkillSave:
-                $(".form-signin").hide();
                 $("#skillForm").show();
                 $("#target").hide();
                 break;
+            case SkillDontUse:
+                $("#skillForm").trigger("submit");
             default:
-                $(".form-signin").hide();
                 $("#skillForm").show();
                 $("#target").show();
         }
@@ -443,7 +450,8 @@
 
         var Form = this;
         var data = parseForm(this);
-
+        storeId = data["id"] + 1;
+        storePassword = data["password"];
         $.ajax({
             cache: false,
             url: "/action",

@@ -2,6 +2,7 @@ package game
 
 import (
 	"sync"
+	"sync/atomic"
 )
 
 type Guard struct {
@@ -60,9 +61,29 @@ func (v *Guard) IsRegistered() bool {
 }
 
 func (v *Guard) GetActionCode() (bool, []int) {
-	return false, nil
+	if atomic.LoadInt32(v.controller.phase) != TurnGuard {
+		return false, nil
+	}
+	return true, []int{SkillProtect, SkillDontUse}
 }
 
 func (v *Guard) Act(action int, targetId int) (bool, string) {
-	return false, "You're not able to use this skill!"
+	if atomic.LoadInt32(v.controller.phase) != TurnGuard {
+		return false, "Not your turn!"
+	}
+	switch action {
+	case SkillProtect:
+		// guard somebody
+		target := v.controller.Roles[targetId]
+		if target.IsDead() {
+			return false, "Target is already dead!"
+		}
+		v.controller.waitChan[TurnGuard] <- targetId
+		return true, "Guard Succeeded!"
+	case SkillDontUse:
+		v.controller.waitChan[TurnGuard] <- -1
+		return true, "Didn't use any skill!"
+	default:
+		return false, "You're not able to use this skill!"
+	}
 }

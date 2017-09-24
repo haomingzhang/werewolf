@@ -45,6 +45,7 @@ func (g *GameServer) Start() {
 	http.HandleFunc("/lastnightinfo", g.handleLastNight)
 	http.HandleFunc("/dayend", g.handleDayEnd)
 	http.HandleFunc("/home", g.handleHome)
+	http.HandleFunc("/", g.handleHome)
 	if g.Controller.gameMode == ServerMode {
 		http.HandleFunc(ClientEndpoint, g.handleClient)
 	}

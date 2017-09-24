@@ -88,16 +88,21 @@ func (v *Wizard) Act(action int, targetId int) (bool, string) {
 	switch action {
 	case SkillSave:
 		if v.saveUsed {
-			return false, "Your potion is already Used!"
+			return false, "Your save potion is already Used!"
 		}
 		v.saveUsed = true
 		v.controller.waitChan[TurnWizard] <- -1
 	case SkillPoison:
+		if v.poisonUsed {
+			return false, "Your poison is already Used!"
+		}
+		v.poisonUsed = true
 		target := v.controller.Roles[targetId]
 		if target.IsDead() {
 			return false, "Target is already dead!"
 		}
 		v.controller.waitChan[TurnWizard] <- targetId
+
 	case SkillDontUse:
 		v.controller.waitChan[TurnWizard] <- -2
 		return true, "Didn't use any skill!"

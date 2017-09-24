@@ -51,6 +51,8 @@ const (
 	TurnGameOver
 	TurnNight
 	TurnNightEnd
+	TurnWerewolfEnd
+	TurnGuardEnd
 )
 
 const (
@@ -80,6 +82,7 @@ type Controller struct {
 	killedTonight int
 	gameMode      string
 	clientChan    chan int
+	hasGuard      bool
 }
 
 type Role interface {
@@ -127,7 +130,7 @@ func (c *Controller) Initialize(sgr *InitGameRequest) bool {
 	c.GuardCount = sgr.GuardCount
 	c.WerewolfCount = sgr.WerewolfCount
 	c.TotalCount = c.VillagerCount + c.GodCount + c.WerewolfCount
-
+	c.hasGuard = sgr.GuardCount > 0
 	// assign roles
 	c.Roles = make([]Role, c.TotalCount)
 	c.Passwords = make([]string, c.TotalCount)
@@ -279,7 +282,7 @@ func (c *Controller) BanishPlayer(id int) *DayEndResponse {
 	c.waitChan[TurnDay] <- id
 	return &DayEndResponse{
 		Successful: true,
-		Message:    fmt.Sprintf("Successfully banished player %d", id),
+		Message:    fmt.Sprintf("Successfully banished player %d", id+1),
 	}
 }
 
@@ -290,9 +293,16 @@ func (c *Controller) GetLastNightInfo() *LastNightResponse {
 			Message: "You can only get last night info during the day!",
 		}
 	}
+	var msg string
+	if len(c.lastNight) == 0 {
+		msg = "Peaceful night!"
+	} else {
+		msg = "Players who died last night: " + strings.Join(c.lastNight, ",")
+	}
+
 	return &LastNightResponse{
 		Code:    http.StatusOK,
-		Message: "Players who died last night: " + strings.Join(c.lastNight, ","),
+		Message: msg,
 	}
 }
 
@@ -335,15 +345,25 @@ func (c *Controller) beginNight(day int) {
 	c.SleepAndPlayAudio(TurnWerewolf)
 	killedId := <-c.waitChan[TurnWerewolf]
 	saved := false
+	protected := false
 	c.killedTonight = killedId
-
+	c.SleepAndPlayAudio(TurnWerewolfEnd)
 	// Guard
-	/*
-		if c.GuardCount>0 {
-			c.SleepAndPlayAudio(TurnGuard)
-			guardId := <-c.waitChan[TurnGuard]
+
+	guardId := -1
+	if c.hasGuard {
+		atomic.StoreInt32(c.phase, TurnGuard)
+		c.SleepAndPlayAudio(TurnGuard)
+		if c.GuardCount > 0 {
+			guardId = <-c.waitChan[TurnGuard]
+			if guardId >= 0 {
+				protected = true
+			}
+		} else {
+			time.Sleep(SleepInterval)
 		}
-	*/
+		c.SleepAndPlayAudio(TurnGuardEnd)
+	}
 
 	// Wizard
 	atomic.StoreInt32(c.phase, TurnWizard)
@@ -369,11 +389,13 @@ func (c *Controller) beginNight(day int) {
 	} else {
 		time.Sleep(SleepInterval)
 	}
-	// end the night
-	if !saved {
+	// save, protected
+	if (!saved && !protected) || (!saved && protected && (guardId != killedId)) || (saved && protected && (guardId == killedId)) {
 		c.Roles[killedId].Die(false)
 		c.lastNight = append(c.lastNight, strconv.Itoa(killedId+1))
 	}
+
+	// poison
 	if targetId >= 0 && targetId != killedId {
 		c.lastNight = append(c.lastNight, strconv.Itoa(targetId+1))
 	}
@@ -400,7 +422,6 @@ func SleepAndPlayAudio(turn int) {
 	case TurnWerewolf:
 		PlayAudio("werewolf.mpg")
 	case TurnWizard:
-		PlayAudio("werewolfEnd.mpg")
 		PlayAudio("wizard.mpg")
 	case TurnProphet:
 		PlayAudio("wizardEnd.mpg")
@@ -412,7 +433,11 @@ func SleepAndPlayAudio(turn int) {
 	case TurnGameOver:
 		PlayAudio("gameOver.mpg")
 	case TurnGuard:
-		PlayAudio("guard.mpg")
+		PlayAudio("guard.mp3")
+	case TurnWerewolfEnd:
+		PlayAudio("werewolfEnd.mpg")
+	case TurnGuardEnd:
+		PlayAudio("guardEnd.mp3")
 	}
 
 }
