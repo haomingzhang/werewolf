@@ -71,6 +71,7 @@ type Controller struct {
 	MoronCount    int
 	GuardCount    int
 	TotalCount    int
+	WhiteWolfCount int
 	initialized   bool
 	started       bool
 	Roles         []Role // id -> RoleName
@@ -129,7 +130,8 @@ func (c *Controller) Initialize(sgr *InitGameRequest) bool {
 	c.MoronCount = sgr.MoronCount
 	c.GuardCount = sgr.GuardCount
 	c.WerewolfCount = sgr.WerewolfCount
-	c.TotalCount = c.VillagerCount + c.GodCount + c.WerewolfCount
+	c.WhiteWolfCount = sgr.WhiteWolfCount
+	c.TotalCount = c.VillagerCount + c.GodCount + c.WerewolfCount + c.WhiteWolfCount
 	c.hasGuard = sgr.GuardCount > 0
 	// assign roles
 	c.Roles = make([]Role, c.TotalCount)
@@ -152,6 +154,8 @@ func (c *Controller) Initialize(sgr *InitGameRequest) bool {
 			c.Roles[randIds[i]] = CreateMoron(i, c)
 		case i < c.VillagerCount+c.WerewolfCount+c.ProphetCount+c.WizardCount+c.HunterCount+c.MoronCount+c.GuardCount:
 			c.Roles[randIds[i]] = CreateGuard(i, c)
+		case i < c.VillagerCount+c.WerewolfCount+c.ProphetCount+c.WizardCount+c.HunterCount+c.MoronCount+c.GuardCount+c.WhiteWolfCount:
+			c.Roles[randIds[i]] = CreateWhiteWolf(i, c)
 		}
 	}
 
@@ -248,6 +252,8 @@ func (c *Controller) GameIsEnd() bool {
 
 	for _, role := range c.Roles {
 		if w, ok := role.(*Werewolf); ok && !w.IsDead() {
+			leftWerewolf++
+		} else if w, ok := role.(*WhiteWolf); ok && !w.IsDead(){
 			leftWerewolf++
 		} else if v, ok := role.(*Villager); ok && !v.IsDead() {
 			leftVillager++

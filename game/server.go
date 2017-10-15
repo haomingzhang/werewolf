@@ -64,6 +64,7 @@ type InitGameRequest struct {
 	HunterCount   int `json:"hunterCount"`
 	MoronCount    int `json:"moronCount"`
 	GuardCount    int `json:"guardCount"`
+	WhiteWolfCount int `json:"whiteWolfCount"`
 }
 
 type ActionRequest struct {
