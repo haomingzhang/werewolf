@@ -180,6 +180,9 @@ func (c *Controller) Register(request *RegisterRequest) *RegisterResponse {
 		res.Code = http.StatusOK
 		c.Passwords[request.Id] = request.Password
 	} else {
+		if c.Passwords[request.Id] != request.Password {
+			res.RoleName = "You can't see other's role."
+		}
 		res.Code = http.StatusAlreadyReported
 	}
 	return res
