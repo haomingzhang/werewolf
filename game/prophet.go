@@ -82,6 +82,9 @@ func (v *Prophet) Act(action int, targetId int) (bool, string) {
 	if _, ok := role.(*Werewolf); ok {
 		roleMsg = "Werewolf"
 	}
+	if _, ok := role.(*WhiteWolf); ok {
+		roleMsg = "Werewolf"
+	}
 	message := fmt.Sprintf("Player %d (%s) is: %s", targetId+1, role.GetPlayerName(), roleMsg)
 	v.controller.waitChan[TurnProphet] <- targetId
 	return true, message
